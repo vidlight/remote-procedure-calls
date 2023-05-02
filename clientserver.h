@@ -9,4 +9,5 @@ struct message {
     int message_type;
     int key;
     int val;
+    int length; 
 };
