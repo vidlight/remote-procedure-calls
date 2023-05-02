@@ -12,3 +12,7 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
 
     return rpc;
 }
+
+int RPC_put(struct rpc_connection *rpc, int key, int value){
+    
+}
