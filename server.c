@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 
     int port = atoi(argv[1]);
 
+
     struct socket server_port = init_socket(port);
     struct message curr_message;
     char buf[BUFLEN];
@@ -63,6 +64,7 @@ int main(int argc, char *argv[]) {
             }
 
         }
+
 
         if (handled == 0) {
 
@@ -107,16 +109,14 @@ int main(int argc, char *argv[]) {
 
         pthread_create(&thread_id, NULL, thread_helper, &args);
 
-        // Adjust call table
-        call_table[curr_index].last_result = args.resp.result;
-        call_table[curr_index].seq_number = curr_message.seq_number;
-
-        printf("Thread test: %d\n", args.resp.result);
+        pthread_join(thread_id, NULL);
 
         memcpy(buf, &(args.resp), sizeof(struct response));
         send_packet(server_port, curr_packet.sock, curr_packet.slen, buf, sizeof(struct response));
 
-        pthread_join(thread_id, NULL);
+        // Adjust call table
+        call_table[curr_index].last_result = args.resp.result;
+        call_table[curr_index].seq_number = curr_message.seq_number;
 
         curr_index = 101;
         handled = 0;

@@ -18,7 +18,7 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
   rpc.recv_socket = init_socket(src_port);
   rpc.seq_number = sequenceNo;
   rpc.dst_len = addrlen;
-  sequenceNo++;
+  //sequenceNo++;
   return rpc;
 }
 
@@ -26,7 +26,7 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
 int RPC_put(struct rpc_connection *rpc, int key, int value){
   int retryCnt = 0;
   char buf[BUFLEN];
-  rpc->seq_number = sequenceNo;
+  rpc->seq_number++;
   sequenceNo++;
   struct response server_resp;
   while (retryCnt < 5) {
@@ -38,7 +38,7 @@ int RPC_put(struct rpc_connection *rpc, int key, int value){
     messagepayload.message_type = 2;
     memcpy(buf, &messagepayload, sizeof(struct message));
     send_packet(rpc->recv_socket, rpc->dst_addr, rpc->dst_len, buf, sizeof(struct message));
-    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 1);
+    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 3);
     if (recPacket.recv_len < 0){
       retryCnt++;
       continue;
@@ -60,7 +60,7 @@ int RPC_put(struct rpc_connection *rpc, int key, int value){
 int RPC_get(struct rpc_connection *rpc, int key){
   int retryCnt = 0;
   char buf[BUFLEN];
-  rpc->seq_number = sequenceNo;
+  rpc->seq_number++;
   sequenceNo++;
   struct response server_resp;
   while ( retryCnt < 5){
@@ -71,7 +71,7 @@ int RPC_get(struct rpc_connection *rpc, int key){
     messagepayload.message_type = 1;
     memcpy(buf, &messagepayload, sizeof(struct message));
     send_packet(rpc->recv_socket, rpc->dst_addr, rpc->dst_len, buf, sizeof(struct message));
-    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 1);       
+    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 3);       
     if (recPacket.recv_len < 0){
       retryCnt++;
       continue;
@@ -93,7 +93,7 @@ int RPC_get(struct rpc_connection *rpc, int key){
 void RPC_idle(struct rpc_connection *rpc, int time){
   int retryCnt = 0;
   char buf[BUFLEN];
-  rpc->seq_number = sequenceNo;
+  rpc->seq_number++;
   sequenceNo++;
   struct response server_resp;
   while (retryCnt < 5) {
@@ -104,7 +104,7 @@ void RPC_idle(struct rpc_connection *rpc, int time){
     messagepayload.time = time;
     memcpy(buf, &messagepayload, sizeof(struct message));
     send_packet(rpc->recv_socket, rpc->dst_addr, rpc->dst_len, buf, sizeof(struct message));
-    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 1);
+    struct packet_info recPacket = receive_packet_timeout(rpc->recv_socket, 3);
     if (recPacket.recv_len < 0){
       retryCnt++;
       continue;
