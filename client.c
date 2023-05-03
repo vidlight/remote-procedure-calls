@@ -2,6 +2,9 @@
 #include "clientserver.h"
 #include "udp.h"
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
 
 int sequenceNo = 0;
 
@@ -10,10 +13,11 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
   struct sockaddr_storage addr;
   socklen_t addrlen;
   populate_sockaddr(AF_INET, dst_port, dst_addr, &addr, &addrlen);
-  rpc.dst_addr = *((struct sockaddr *)(&addr));
+  rpc.dst_addr = *(struct sockaddr *)(&addr);
   rpc.client_id = rand();
   rpc.recv_socket = init_socket(src_port);
   rpc.seq_number = sequenceNo;
+  rpc.dst_len = addrlen;
   sequenceNo++;
   return rpc;
 }
@@ -22,9 +26,10 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
 int RPC_put(struct rpc_connection *rpc, int key, int value){
   int retryCnt = 0;
   char buf[BUFLEN];
+  rpc->seq_number = sequenceNo;
   sequenceNo++;
   struct response server_resp;
-  while (retryCnt , 5) {
+  while (retryCnt < 5) {
     struct message messagepayload;
     messagepayload.client_id = rpc->client_id;
     messagepayload.key = key;
@@ -48,11 +53,14 @@ int RPC_put(struct rpc_connection *rpc, int key, int value){
     }
     return server_resp.result;
   }
+
+  return -1;
 }
 
 int RPC_get(struct rpc_connection *rpc, int key){
   int retryCnt = 0;
   char buf[BUFLEN];
+  rpc->seq_number = sequenceNo;
   sequenceNo++;
   struct response server_resp;
   while ( retryCnt < 5){
@@ -78,11 +86,14 @@ int RPC_get(struct rpc_connection *rpc, int key){
     }
     return server_resp.result;
   }
+
+  return -1;
 }
 
-int RPC_idle(struct rpc_connection *rpc, int time){
+void RPC_idle(struct rpc_connection *rpc, int time){
   int retryCnt = 0;
   char buf[BUFLEN];
+  rpc->seq_number = sequenceNo;
   sequenceNo++;
   struct response server_resp;
   while (retryCnt < 5) {
@@ -106,7 +117,6 @@ int RPC_idle(struct rpc_connection *rpc, int time){
         sleep(1);
         continue;
     }
-    return 0;
   }
 }
 
