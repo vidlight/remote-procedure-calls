@@ -50,10 +50,13 @@ int main(int argc, char *argv[]) {
 
         struct packet_info curr_packet = receive_packet(server_port);
         memcpy(&curr_message, curr_packet.buf, sizeof(struct message));
+        printf("Message:  seq %d, type %d\n", curr_message.seq_number, curr_message.message_type);
+
 
         for (int i = 0; i < 100; i++) {
 
             if (call_table[i].client_id == curr_message.client_id) {
+                printf("his\n");
                 curr_index = i;
                 handled = 1;
                 break;
@@ -67,10 +70,11 @@ int main(int argc, char *argv[]) {
 
 
         if (handled == 0) {
-
+            printf("handle\n");
             call_table[curr_index].valid = 1;
             call_table[curr_index].seq_number = curr_message.seq_number;
             call_table[curr_index].client_id = curr_message.client_id;
+            call_table[curr_index].inprogress = 1;
 
         } else {
 
@@ -80,15 +84,23 @@ int main(int argc, char *argv[]) {
                 continue;
             } else if (curr_message.seq_number == call_table[curr_index].seq_number) {
                 // RESPOND FROM SERVER
-                curr_index = 101;
-                handled = 0;
+                printf("why\n");
+                printf("table value: %d\n", call_table[curr_index].last_result);
                 struct response ack_response;
-                ack_response.ack = 1;
+                if (call_table[curr_index].inprogress == 1){
+                    ack_response.ack = 1;
+                } else {
+                    ack_response.ack = 0;
+                }
                 ack_response.client_id = curr_message.client_id;
                 ack_response.seq_number = curr_message.seq_number;
                 ack_response.result = call_table[curr_index].last_result;
                 memcpy(buf, &ack_response, sizeof(struct response));
+                printf("this: %d\n", curr_packet.slen);
+                curr_index = 101;
+                handled = 0;
                 send_packet(server_port, curr_packet.sock, curr_packet.slen, buf, sizeof(struct response));
+                continue;
             }
 
         }
@@ -117,7 +129,7 @@ int main(int argc, char *argv[]) {
         // Adjust call table
         call_table[curr_index].last_result = args.resp.result;
         call_table[curr_index].seq_number = curr_message.seq_number;
-
+        call_table[curr_index].inprogress = 0;
         curr_index = 101;
         handled = 0;
 

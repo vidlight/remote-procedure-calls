@@ -33,6 +33,7 @@ struct client_connection {
     int seq_number;
     int client_id;
     int last_result;
+    int inprogress;
 
 };
 
