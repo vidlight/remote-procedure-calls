@@ -15,6 +15,8 @@ struct message {
 struct response {
     int ack;
     int result;
+    int client_id;
+    int seq_number;
 };
 
 struct params {

@@ -75,6 +75,8 @@ int main(int argc, char *argv[]) {
                 handled = 0;
                 struct response ack_response;
                 ack_response.ack = 1;
+                ack_response.client_id = curr_message.client_id;
+                ack_response.seq_number = curr_message.seq_number;
                 ack_response.result = call_table[curr_index]->last_result;
                 memcpy(buf, &ack_response, sizeof(struct response));
                 send_packet(server_port, curr_packet.sock, curr_packet.slen, buf, sizeof(struct response));
@@ -92,6 +94,8 @@ int main(int argc, char *argv[]) {
         args.time = curr_message.time;
         args.val = curr_message.val;
         args.type = curr_message.message_type;
+        args.resp.client_id = curr_message.client_id;
+        args.resp.seq_number = curr_message.seq_number;
 
         pthread_create(&thread_id, NULL, thread_helper, &args);
 
