@@ -18,7 +18,6 @@ struct rpc_connection RPC_init(int src_port, int dst_port, char dst_addr[]){
   rpc.recv_socket = init_socket(src_port);
   rpc.seq_number = sequenceNo;
   rpc.dst_len = addrlen;
-  //sequenceNo++;
   return rpc;
 }
 
@@ -48,12 +47,12 @@ int RPC_put(struct rpc_connection *rpc, int key, int value){
         continue;
     }
     if (server_resp.ack == 1) {
-        sleep(1);
-        continue;
+      retryCnt = 0;
+      sleep(1);
+      continue;
     }
     return server_resp.result;
   }
-
   return -1;
 }
 
@@ -81,13 +80,14 @@ int RPC_get(struct rpc_connection *rpc, int key){
         continue;
     }
     if (server_resp.ack == 1) {
-        sleep(1);
-        continue;
+      retryCnt = 0;
+      sleep(1);
+      continue;
     }
     return server_resp.result;
   }
-
-  return -1;
+  printf("Hit max Retries\n");
+  return rpc->seq_number;
 }
 
 void RPC_idle(struct rpc_connection *rpc, int time){
@@ -114,9 +114,11 @@ void RPC_idle(struct rpc_connection *rpc, int time){
         continue;
     }
     if (server_resp.ack == 1) {
+        retryCnt = 0;
         sleep(1);
         continue;
     }
+    break;
   }
 }
 
